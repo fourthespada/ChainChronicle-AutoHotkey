@@ -1,7 +1,7 @@
 Chain Chronicle!
 ========================
 
-Autohotkey script to run the ring loop on chain chronicle (esp. while you're away from your computer!).
+Autohotkey script to run the ring loop on chain chronicle (esp. while you're away from your computer!) on bluestacks.  I used the default tablet resolution for bluestacks.
 
 It will do 50x AC exchange, 50x challenge recruit, then attempt to sell everything in your sell screen until it hits the locked cards.  Script will repeat forever until paused or stopped.
 
@@ -19,7 +19,7 @@ Safeguard to stop if you fall under 10k rings (gumi changes rate while you're aw
 Usage
 =====
 
-Install autohotkey
+Install autohotkey & bluestacks and set up bluestacks.
 
 Download all files into any folder
 
@@ -45,6 +45,8 @@ F11 to enable Mouse Position Tooltip if you need to modify script coordinates.
 
 
 PS:
-> Utilizing a 1920x1080 monitor with default bluestacks resolution
+> Utilizing a 1920x1080 monitor with default bluestacks tablet resolution
+
 > Removed Findclick "r" option due to strange bug with occasional "Window Not Found".  Feel free to add it back.
+
 > Thought of capturing screen / upload to imgur then send PB push but too lazy to do that now...
