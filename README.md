@@ -1,11 +1,18 @@
 Chain Chronicle!
 ========================
 
-Autohotkey script to run the ring loop on chain chronicle.
+Autohotkey script to run the ring loop on chain chronicle (esp. while you're away from your computer!).
+
+It will do 50x AC exchange, 50x challenge recruit, then attempt to sell everything in your sell screen until it hits the locked cards.  Script will repeat forever until paused or stopped.
+
 Uses findclick in the ring shop & challenge recruit to avoid clicking dangerous things.
+
 Uses a rescue function to break out of circumstances such as daily login bonus and prysma popups..etc.
+
 Pushbullet notifications so you can get progress notifications while at work/school!
+
 Safeguard to stop if you fall under 10k rings (gumi changes rate while you're away).  
+
 
 
 
@@ -23,6 +30,10 @@ Optional: Edit CC Rings Advanced.ahk global variables near the top
 Double click the script & watch your notifications pane for the green "H"
 
 Place Bluestacks on top left corner of the monitor and start Chain Chronicle.
+
+Make sure your sell screen is arranged by "Acquired".  Make sure to LOCK your CARDS since the script will automatically sell all the latest cards and then some.
+
+MAKE SURE TO LOCK THE CARDS YOU DON'T WANT TO SELL.
 
 F5 to start script
 Pause key to pause
