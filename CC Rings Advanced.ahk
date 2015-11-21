@@ -423,7 +423,7 @@ DoChallengeRecruit()
 			IfWinNotActive BlueStacks App Player
 				Return
 
-			Click
+			Click 1400 250	;click safe spot
 			Sleep, 1000
 
 			if (FindClick(PNGPath . "FC_ChallengeRec.png", "n") != 0)
@@ -439,12 +439,13 @@ DoChallengeRecruit()
 
 DebugMessage(str)
 {
+ str := A_Hour . ":" . A_Min . ":" A_Sec . " " . str . "`n" ; add line feed
+
  if(PBDebug = 1)
 	PB_PushNote(str)
 
  global h_stdout
  DebugConsoleInitialize()  ; start console window if not yet started
- str .= "`n" ; add line feed
  
  ;DllCall("WriteFile", "uint", h_Stdout, "uint", &str, "uint", StrLen(str), "uint*", BytesWritten, "uint", NULL) ; write into the console
  ;replaced with: 
