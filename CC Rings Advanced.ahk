@@ -11,9 +11,6 @@ global PNGPath := ""	;not required if in same folder
 
 global SellCount := LoopTimes * 4 + 2
 
-; sorry for using global for this one :P  would've done it with a closure in a minute in JS ;)
-global subloopfails := 0
-
 #IfWinActive BlueStacks App Player
 F2::
 	Loop 200
@@ -49,25 +46,13 @@ F5::
 		CheckRingsFor9K()
 
 		Loop 50
-		{
-			if(CheckSubloopRescue() = 1)
-				Break
 			BuyAC()
-		}
 
 		GotoRecruit()
 		ScrollToChallengeRecruit()
 
 		Loop 50
-		{
-			if(CheckSubloopRescue() = 1)
-			{
-				GotoRecruit()
-				ScrollToChallengeRecruit()
-			}
 			DoChallengeRecruit()
-		}
-
 		
 		GotoSell()
 
@@ -94,9 +79,7 @@ F6::
 	Return
 
 F7::
-	subloopfails = 5
-	MsgBox, % CheckSubloopRescue()
-	;Rescue()
+	Rescue()
 	Return
 
 F8::
@@ -126,17 +109,6 @@ F11::
 F12::Reload
 
 Pause::Pause
-
-CheckSubloopRescue()
-{
-	if(subloopfails > 4)
-	{
-		Rescue()
-		Return 1
-	}
-	else
-		Return 0
-}
 
 
 NoBuyRecruitSell()
@@ -418,13 +390,8 @@ BuyAC()
 		{
 			ScrollToAC()
 			;Continue
-			if(FindClick(PNGPath . "FC_AC2000_v3.png", "y170 w5000 oTransBlack") = 0)
-				subloopfails += 1
-			else
-				subloopfails = 0
+			FindClick(PNGPath . "FC_AC2000_v3.png", "y170 w5000 oTransBlack")
 		}
-		else
-			subloopfails = 0
 
 		IfWinNotActive BlueStacks App Player
 			Return
@@ -445,12 +412,7 @@ BuyAC()
 DoChallengeRecruit()
 {
 ;	DebugMessage("DoChallengeRec Enter")
-		
-		if(FindClick(PNGPath . "FC_ChallengeRec.png", "w5000") = 0)
-			subloopfails += 1
-		else
-			subloopfails = 0
-
+		FindClick(PNGPath . "FC_ChallengeRec.png", "w5000")
 		IfWinNotActive BlueStacks App Player
 				Return		
 		FindClick(PNGPath . "FC_Rec.png", "w5000")
@@ -461,7 +423,7 @@ DoChallengeRecruit()
 			IfWinNotActive BlueStacks App Player
 				Return
 
-			Click 1400 250	;click safe spot
+			Click
 			Sleep, 1000
 
 			if (FindClick(PNGPath . "FC_ChallengeRec.png", "n") != 0)
@@ -477,13 +439,12 @@ DoChallengeRecruit()
 
 DebugMessage(str)
 {
- str := A_Hour . ":" . A_Min . ":" A_Sec . " " . str . "`n" ; add line feed
-
  if(PBDebug = 1)
 	PB_PushNote(str)
 
  global h_stdout
  DebugConsoleInitialize()  ; start console window if not yet started
+ str .= "`n" ; add line feed
  
  ;DllCall("WriteFile", "uint", h_Stdout, "uint", &str, "uint", StrLen(str), "uint*", BytesWritten, "uint", NULL) ; write into the console
  ;replaced with: 
@@ -500,7 +461,6 @@ DebugConsoleInitialize()
      return
 	 
    is_open := 1	
-
    ; two calls to open, no error check (it's debug, so you know what you are doing)
    DllCall("AttachConsole", int, -1, int)
    DllCall("AllocConsole", int)
