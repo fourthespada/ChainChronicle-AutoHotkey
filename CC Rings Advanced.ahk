@@ -3,13 +3,18 @@
 SendMode Input  ; Recommended for new scripts due to its superior speed and reliability.
 SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
 
-; GLOBALS
-global PBDebug	:= 0	;set to 1 for pushbullet notifications
-global PB_Token	:= ""   ;add your PB token here
-global PB_Title	:= "AHKScript"
-global PNGPath := ""	;not required if in same folder
+; GLOBALS - configuration
+global PBDebug	:= 0		;optional: set to 1 for pushbullet notifications
+global PB_Token	:= ""   	;optional: add your Pushbullet API token inside the quotation marks here
+global notifyeveryX := 5	; send notifications every X iterations
+global PNGPath := ""		;not required if in same folder
+global PB_Title	:= "AHKScript"	
 
+; GLOBALS - internal
 global SellCount := LoopTimes * 4 + 2
+; sorry for using global for this one :P  would've done it with a closure in a minute in JS ;)
+global subloopfails := 0
+
 
 #IfWinActive BlueStacks App Player
 F2::
@@ -46,28 +51,45 @@ F5::
 		CheckRingsFor9K()
 
 		Loop 50
+		{
+			if(CheckSubloopRescue() = 1)
+				DebugMessage("AC Fail " . subloopfails)
 			BuyAC()
+		}
 
 		GotoRecruit()
 		ScrollToChallengeRecruit()
 
 		Loop 50
+		{
+			if(CheckSubloopRescue() = 1)
+			{
+				GotoRecruit()
+				ScrollToChallengeRecruit()
+			}
 			DoChallengeRecruit()
-		
-		GotoSell()
+		}
+
+		while(FindClick(PNGPath . "FC_SellScrConfirm.png", "n") = 0)
+		{
+			GotoSell()
+			if (FindClick(PNGPath . "FC_SellScrConfirm.png", "n") = 0)
+			{
+				DebugMessage("Sell Screen not found")
+				Rescue()
+			}
+		}			
 
 		if (FindClick(PNGPath . "FC_SellScrConfirm.png", "n") != 0)
 		{
 			; extra loops because sometimes the UI can't keep up with sell clicks
-			Loop 14
+			Loop 15
 				SellFour()
 		}
-		else
-			DebugMessage("Sell ABORTED")
 
 		ExitSell()
 		
-		if(Mod(mainitr, 5) = 0)
+		if(Mod(mainitr, notifyeveryX) = 0)
 			DebugMessage("Iteration complete" . mainitr)
 	}
 	Return
@@ -79,11 +101,14 @@ F6::
 	Return
 
 F7::
-	Rescue()
+	subloopfails = 5
+	MsgBox, % CheckSubloopRescue()
+	;Rescue()
 	Return
 
 F8::
-	NoBuyRecruitSell()
+	GotoSell()
+	MsgBox, % FindClick(PNGPath . "FC_SellScrConfirm.png", "n")
 	Return
 F10::
 	FindClick()
@@ -109,6 +134,17 @@ F11::
 F12::Reload
 
 Pause::Pause
+
+CheckSubloopRescue()
+{
+	if(subloopfails > 4)
+	{
+		Rescue()
+		Return 1
+	}
+	else
+		Return 0
+}
 
 
 NoBuyRecruitSell()
@@ -328,6 +364,9 @@ ScrollToChallengeRecruit()
 
 	Loop 6
 	{
+		if(FindClick(PNGPath . "FC_ChallengeRec.png", "n") != 0)
+			break
+
 		Click 400 800 down
 		Click 0 -500 0 Rel
 		Click up
@@ -351,7 +390,7 @@ GotoSell()
 		Click 650, 800  ;enhance
 		Sleep 3000
 		Click 1275, 690	;sell
-		Sleep 1500
+		Sleep 2500
 
 ;	DebugMessage("GotoSell Exit")
 	Return
@@ -390,8 +429,13 @@ BuyAC()
 		{
 			ScrollToAC()
 			;Continue
-			FindClick(PNGPath . "FC_AC2000_v3.png", "y170 w5000 oTransBlack")
+			if(FindClick(PNGPath . "FC_AC2000_v3.png", "y170 w5000 oTransBlack") = 0)
+				subloopfails += 1
+			else
+				subloopfails = 0
 		}
+		else
+			subloopfails = 0
 
 		IfWinNotActive BlueStacks App Player
 			Return
@@ -412,7 +456,12 @@ BuyAC()
 DoChallengeRecruit()
 {
 ;	DebugMessage("DoChallengeRec Enter")
-		FindClick(PNGPath . "FC_ChallengeRec.png", "w5000")
+		
+		if(FindClick(PNGPath . "FC_ChallengeRec.png", "w5000") = 0)
+			subloopfails += 1
+		else
+			subloopfails = 0
+
 		IfWinNotActive BlueStacks App Player
 				Return		
 		FindClick(PNGPath . "FC_Rec.png", "w5000")
@@ -462,6 +511,7 @@ DebugConsoleInitialize()
      return
 	 
    is_open := 1	
+
    ; two calls to open, no error check (it's debug, so you know what you are doing)
    DllCall("AttachConsole", int, -1, int)
    DllCall("AllocConsole", int)
