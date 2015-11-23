@@ -207,7 +207,7 @@ ScrollToAC()
 		;		Click 200 200 down
 		;		Click 0 -200 0 Rel
 		;		Click up
-		Options = r k"{Click down}{Click 0, -200 0 Rel}{Click up}"
+		Options = r k"{Click down}{Click 0, -175 0 Rel}{Click up}"
 
 		SendMode Event
 		SetMouseDelay 100
@@ -440,9 +440,12 @@ BuyAC()
 		IfWinNotActive BlueStacks App Player
 			Return
 
-		FindClick(PNGPath . "FC_yes.png", "w4000")
-		IfWinNotActive BlueStacks App Player
-			Return
+		if(FindClick(PNGPath . "FC_AC2000Prompt.png", "n w4000") != 0)
+		{
+			FindClick(PNGPath . "FC_yes.png", "w4000")
+			IfWinNotActive BlueStacks App Player
+				Return
+		}
 
 		FindClick(PNGPath . "FC_OK.png", "w4000")
 		IfWinNotActive BlueStacks App Player
