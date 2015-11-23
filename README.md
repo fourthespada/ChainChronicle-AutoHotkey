@@ -14,6 +14,9 @@ Pushbullet notifications so you can get progress notifications while at work/sch
 Safeguard to stop if you fall under 10k rings (gumi changes rate while you're away).  
 
 
+video @ https://www.youtube.com/watch?v=IPKn8mzOOBs
+
+(Video starts mid challenge recruit but the script will start from buying AC)
 
 
 Usage
