@@ -67,7 +67,11 @@ F5::
 				GotoRecruit()
 				ScrollToChallengeRecruit()
 			}
+
 			DoChallengeRecruit()
+
+			;following line was added as a quick fix to the Gumi's change to reset scroll location
+			ScrollToChallengeRecruit()
 		}
 
 		while(FindClick(PNGPath . "FC_SellScrConfirm.png", "n") = 0)
