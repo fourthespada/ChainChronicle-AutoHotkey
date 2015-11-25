@@ -4,17 +4,19 @@ SendMode Input  ; Recommended for new scripts due to its superior speed and reli
 SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
 
 ; GLOBALS - configuration
-global PBDebug	:= 0		;optional: set to 1 for pushbullet notifications
-global PB_Token	:= ""   	;optional: add your Pushbullet API token inside the quotation marks here
-global notifyeveryX := 5	; send notifications every X iterations
-global PNGPath := ""		;not required if in same folder
-global PB_Title	:= "AHKScript"	
+global g_PBDebug 	:= 0		;optional: set to 1 for pushbullet notifications
+global g_PBToken	:= ""   	;optional: add your Pushbullet API token inside the quotation marks here
+global g_notifyeveryX 	:= 5		; send notifications every X iterations
+global g_PNGPath 	:= ""		;not required if in same folder
+global g_PBTitle	:= "AHKScript"	
+global g_dbglvl  	:= 2		;debuglevel 2 for more details.  Not recommended w Pushbullet.
+
 
 ; GLOBALS - internal
-global SellCount := LoopTimes * 4 + 2
+; global SellCount := LoopTimes * 4 + 2
 ; sorry for using global for this one :P  would've done it with a closure in a minute in JS ;)
-global subloopfails := 0
-
+global g_subloopfails := 0
+global g_ACscrollMode := 1	;type1 is faster, if it fails then default back to type2
 
 #IfWinActive BlueStacks App Player
 F2::
@@ -37,13 +39,14 @@ F4::
 	Return
 
 F5::
+	DebugMessage("Starting Script")
 	mainitr := 0
 	Loop
 	{
 		mainitr += 1
 
-		if (FindClick(PNGPath . "FC_Yggdra.png", "n") = 0)
-			if (FindClick(PNGPath . "FC_MenuButton.png", "n") = 0)
+		if (FindClick(g_PNGPath . "FC_Yggdra.png", "n") = 0)
+			if (FindClick(g_PNGPath . "FC_MenuButton.png", "n") = 0)
 				Rescue()
 
 		GotoRingShopItems()
@@ -53,9 +56,11 @@ F5::
 		Loop 50
 		{
 			if(CheckSubloopRescue() = 1)
-				DebugMessage("AC Fail " . subloopfails)
+				DebugMessage("AC Fail " . g_subloopfails)
 			BuyAC()
 		}
+
+		(g_dbglvl > 1) ? DebugMessage("i" . mainitr . " Done Buying AC")
 
 		GotoRecruit()
 		ScrollToChallengeRecruit()
@@ -74,17 +79,19 @@ F5::
 			ScrollToChallengeRecruit()
 		}
 
-		while(FindClick(PNGPath . "FC_SellScrConfirm.png", "n") = 0)
+		(g_dbglvl > 1) ? DebugMessage("i" . mainitr . " Done Recruiting")
+
+		while(FindClick(g_PNGPath . "FC_SellScrConfirm.png", "n") = 0)
 		{
 			GotoSell()
-			if (FindClick(PNGPath . "FC_SellScrConfirm.png", "n") = 0)
+			if (FindClick(g_PNGPath . "FC_SellScrConfirm.png", "n") = 0)
 			{
 				DebugMessage("Sell Screen not found")
 				Rescue()
 			}
 		}			
 
-		if (FindClick(PNGPath . "FC_SellScrConfirm.png", "n") != 0)
+		if (FindClick(g_PNGPath . "FC_SellScrConfirm.png", "n") != 0)
 		{
 			; extra loops because sometimes the UI can't keep up with sell clicks
 			Loop 15
@@ -92,27 +99,28 @@ F5::
 		}
 
 		ExitSell()
+
+		(g_dbglvl > 1) ? DebugMessage("i" . mainitr . " Done Selling")
 		
-		if(Mod(mainitr, notifyeveryX) = 0)
-			DebugMessage("Iteration complete" . mainitr)
+		if(Mod(mainitr, g_notifyeveryX) = 0)
+			DebugMessage("i" . mainitr . " Iteration Complete")
 	}
 	Return
 
 F6::
-	MsgBox, % FindClick(PNGPath . "FC_AC2000.png", "n")
-	MsgBox, % FindClick(PNGPath . "FC_AC2000_v2.png", "n")
-	MsgBox, % FindClick(PNGPath . "FC_AC2000_v3.png", "n oTransBlack")
+	MsgBox, % FindClick(g_PNGPath . "FC_AC2000.png", "n")
+	MsgBox, % FindClick(g_PNGPath . "FC_AC2000_v2.png", "n")
+	MsgBox, % FindClick(g_PNGPath . "FC_AC2000_v3.png", "n oTransBlack")
 	Return
 
 F7::
-	subloopfails = 5
-	MsgBox, % CheckSubloopRescue()
+	ScrollToAC()
 	;Rescue()
 	Return
 
 F8::
 	GotoSell()
-	MsgBox, % FindClick(PNGPath . "FC_SellScrConfirm.png", "n")
+	MsgBox, % FindClick(g_PNGPath . "FC_SellScrConfirm.png", "n")
 	Return
 F10::
 	FindClick()
@@ -141,7 +149,7 @@ Pause::Pause
 
 CheckSubloopRescue()
 {
-	if(subloopfails > 4)
+	if(g_subloopfails > 4)
 	{
 		Rescue()
 		Return 1
@@ -155,8 +163,8 @@ NoBuyRecruitSell()
 {
 	Loop 500
 	{
-		if (FindClick(PNGPath . "FC_Yggdra.png", "n") = 0)
-			if (FindClick(PNGPath . "FC_MenuButton.png", "n") = 0)
+		if (FindClick(g_PNGPath . "FC_Yggdra.png", "n") = 0)
+			if (FindClick(g_PNGPath . "FC_MenuButton.png", "n") = 0)
 				Rescue()
 
 		GotoRecruit()
@@ -167,7 +175,7 @@ NoBuyRecruitSell()
 		
 		GotoSell()
 
-		if (FindClick(PNGPath . "FC_SellScrConfirm.png", "n") != 0)
+		if (FindClick(g_PNGPath . "FC_SellScrConfirm.png", "n") != 0)
 		{
 			; extra loops because sometimes the UI can't keep up with sell clicks
 			Loop 12
@@ -190,9 +198,9 @@ PB_PushNote(PB_Message)
 	WinHTTP := ComObjCreate("WinHTTP.WinHttpRequest.5.1")
 	WinHTTP.SetProxy(0)
 	WinHTTP.Open("POST", "https://api.pushbullet.com/v2/pushes", 0)
-	WinHTTP.SetCredentials(PB_Token, "", 0)
+	WinHTTP.SetCredentials(g_PBToken, "", 0)
 	WinHTTP.SetRequestHeader("Content-Type", "application/json")
-	PB_Body := "{""type"": ""note"", ""title"": """ PB_Title """, ""body"": """ PB_Message """}"
+	PB_Body := "{""type"": ""note"", ""title"": """ g_PBTitle """, ""body"": """ PB_Message """}"
 	WinHTTP.Send(PB_Body)
 	Result := WinHTTP.ResponseText
 	Status := WinHTTP.Status
@@ -202,10 +210,16 @@ PB_PushNote(PB_Message)
 
 ScrollToAC()
 {
+	(g_ACScrollMode = 1) ? ScrollToACFast()
+	(g_ACScrollMode = 2) ? ScrollToACSlow()
+}
+
+ScrollToACSlow()
+{
 ;	DebugMessage("ScrollToAC Enter")
 		; make sure it's not just lagging
 		Sleep 3000
-		if (FindClick(PNGPath . "FC_AC2000_v3.png", "n oTransBlack") != 0)
+		if (FindClick(g_PNGPath . "FC_AC2000_v3.png", "n oTransBlack") != 0)
 			return
 
 		;		Click 200 200 down
@@ -217,14 +231,14 @@ ScrollToAC()
 		SetMouseDelay 100
 
 		itr := 0
-		while (FindClick(PNGPath . "FC_AC2000_v3.png", "n oTransBlack") = 0)
+		while (FindClick(g_PNGPath . "FC_AC2000_v3.png", "n oTransBlack") = 0)
 		{
 			itr += 1
 
 			; do multiple small scrolls
-			if (FindClick(PNGPath . "FC_AC2000_v3.png", "n oTransBlack") = 0)
+			if (FindClick(g_PNGPath . "FC_AC2000_v3.png", "n oTransBlack") = 0)
 			{
-				FindClick(PNGPath . "FC_Scrollitem.png", Options)
+				FindClick(g_PNGPath . "FC_Scrollitem.png", Options)
 			}
 			Sleep 1000
 
@@ -249,11 +263,11 @@ ScrollToAC()
 		DebugMessage("ScrollToAC Iterated times" . itr)
 			
 		; once found, do an extra scroll or two
-		if (FindClick(PNGPath . "FC_AC2000_v3.png", "n oTransBlack") != 0)
+		if (FindClick(g_PNGPath . "FC_AC2000_v3.png", "n oTransBlack") != 0)
 		{
-			FindClick(PNGPath . "FC_Scrollitem.png", Options)
+			FindClick(g_PNGPath . "FC_Scrollitem.png", Options)
 			Sleep 1000
-			FindClick(PNGPath . "FC_Scrollitem.png", Options)
+			FindClick(g_PNGPath . "FC_Scrollitem.png", Options)
 			Sleep 1000
 		}
 
@@ -264,6 +278,43 @@ ScrollToAC()
 	return
 }
 
+ScrolltoACFast()
+{
+;	DebugMessage("ScrollToACFast Enter")
+		; make sure it's not just lagging
+		Sleep 3000
+		if (FindClick(g_PNGPath . "FC_AC2000_v3.png", "n oTransBlack") != 0)
+			return
+
+		SendMode Event
+		SetMouseDelay 100
+
+		itr := 0
+		while(FindClick(g_PNGPath . "FC_AC2000_v3.png", "n oTransBlack") = 0)
+		{
+			itr += 1
+			Click 400 800 down
+			Click 0 -400 0 Rel
+			Click up
+
+			sleep 250
+
+			if(itr > 8)
+			{
+				DebugMessage("ScrolltoACFast failed, setting SLOW mode")
+				g_ACScrollMode = 2
+				break
+			}
+		}
+
+		SendMode Input
+		SetMouseDelay 0
+
+
+;	DebugMessage("ScrollToACFast Exit")
+	return
+}
+
 Rescue()
 {
 	DebugMessage("Rescue Enter")
@@ -271,19 +322,19 @@ Rescue()
 	{
 		Sleep 5000
 
-		If (FindClick(PNGPath . "FC_MenuButton.png", "n") != 0)
+		If (FindClick(g_PNGPath . "FC_MenuButton.png", "n") != 0)
 		{
 			DebugMessage("Menu Found!")
 			Break
 		}
 
-		If (FindClick(PNGPath . "FC_Yggdra.png", "n") != 0)
+		If (FindClick(g_PNGPath . "FC_Yggdra.png", "n") != 0)
 		{
 			DebugMessage("Yggdra Found!")
 			Break
 		}
 
-		If (FindClick(PNGPath . "FC_Title1.png", "n") != 0)
+		If (FindClick(g_PNGPath . "FC_Title1.png", "n") != 0)
 		{
 			Sleep 3000
 			DebugMessage("Rescue Title")
@@ -292,13 +343,13 @@ Rescue()
 			Click 1400, 65
 			Continue
 		}
-		Else If (FindClick(PNGPath . "FC_Logindaily.png", "y50") != 0)
+		Else If (FindClick(g_PNGPath . "FC_Logindaily.png", "y50") != 0)
 		{
 			DebugMessage("Rescue Daily Login")
 			Sleep 5000
 			Continue
 		}
-		Else If (FindClick(PNGPath . "FC_CloseX.png", "r") != 0)
+		Else If (FindClick(g_PNGPath . "FC_CloseX.png", "r") != 0)
 		{
 			; this probably doesn't work that well... but I never needed it.
 			DebugMessage("Rescue Close-X")
@@ -319,10 +370,10 @@ Rescue()
 
 CheckRingsFor9K()
 {
-	If(FindClick(PNGPath . "FC_Rings9K.png", "n") != 0)
+	If(FindClick(g_PNGPath . "FC_Rings9K.png", "n") != 0)
 		Pause
 
-	If(FindClick(PNGPath . "FC_Rings9K_v2.png", "n") != 0)
+	If(FindClick(g_PNGPath . "FC_Rings9K_v2.png", "n") != 0)
 		Pause
 }
 
@@ -368,7 +419,7 @@ ScrollToChallengeRecruit()
 
 	Loop 6
 	{
-		if(FindClick(PNGPath . "FC_ChallengeRec.png", "n") != 0)
+		if(FindClick(g_PNGPath . "FC_ChallengeRec.png", "n") != 0)
 			break
 
 		Click 400 800 down
@@ -429,29 +480,29 @@ GotoRecruit()
 BuyAC()
 {
 ;	DebugMessage("BuyAC Enter")
-		if (FindClick(PNGPath . "FC_AC2000_v3.png", "y170 w5000 oTransBlack") = 0)
+		if (FindClick(g_PNGPath . "FC_AC2000_v3.png", "y170 w5000 oTransBlack") = 0)
 		{
 			ScrollToAC()
 			;Continue
-			if(FindClick(PNGPath . "FC_AC2000_v3.png", "y170 w5000 oTransBlack") = 0)
-				subloopfails += 1
+			if(FindClick(g_PNGPath . "FC_AC2000_v3.png", "y170 w5000 oTransBlack") = 0)
+				g_subloopfails += 1
 			else
-				subloopfails = 0
+				g_subloopfails = 0
 		}
 		else
-			subloopfails = 0
+			g_subloopfails = 0
 
 		IfWinNotActive BlueStacks App Player
 			Return
 
-		if(FindClick(PNGPath . "FC_AC2000Prompt.png", "n w4000") != 0)
+		if(FindClick(g_PNGPath . "FC_AC2000Prompt.png", "n w4000") != 0)
 		{
-			FindClick(PNGPath . "FC_yes.png", "w4000")
+			FindClick(g_PNGPath . "FC_yes.png", "w4000")
 			IfWinNotActive BlueStacks App Player
 				Return
 		}
 
-		FindClick(PNGPath . "FC_OK.png", "w4000")
+		FindClick(g_PNGPath . "FC_OK.png", "w4000")
 		IfWinNotActive BlueStacks App Player
 			Return
 
@@ -464,14 +515,14 @@ DoChallengeRecruit()
 {
 ;	DebugMessage("DoChallengeRec Enter")
 		
-		if(FindClick(PNGPath . "FC_ChallengeRec.png", "w5000") = 0)
-			subloopfails += 1
+		if(FindClick(g_PNGPath . "FC_ChallengeRec.png", "w5000") = 0)
+			g_subloopfails += 1
 		else
-			subloopfails = 0
+			g_subloopfails = 0
 
 		IfWinNotActive BlueStacks App Player
 				Return		
-		FindClick(PNGPath . "FC_Rec.png", "w5000")
+		FindClick(g_PNGPath . "FC_Rec.png", "w5000")
 		IfWinNotActive BlueStacks App Player
 				Return
 		Loop 10
@@ -482,7 +533,7 @@ DoChallengeRecruit()
 			Click 1400 250	;click safe spot
 			Sleep, 1000
 
-			if (FindClick(PNGPath . "FC_ChallengeRec.png", "n") != 0)
+			if (FindClick(g_PNGPath . "FC_ChallengeRec.png", "n") != 0)
 				Break
 		}
 
@@ -497,7 +548,7 @@ DebugMessage(str)
 {
  str := A_Hour . ":" . A_Min . ":" A_Sec . " " . str . "`n" ; add line feed
 
- if(PBDebug = 1)
+ if(g_PBDebug = 1)
 	PB_PushNote(str)
 
  global h_stdout
